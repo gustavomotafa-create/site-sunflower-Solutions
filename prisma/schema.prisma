@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  usuario   String   @unique
+  senha     String
+  nivel     String
+  criadoEm  DateTime @default(now())
+}
+
+model Cliente {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  telefone  String?
+  endereco  String?
+  fiado     Float    @default(0)
+  criadoEm  DateTime @default(now())
+
+  vendas    Venda[]
+}
+
+model Produto {
+  id            Int      @id @default(autoincrement())
+  nome          String
+  precoCompra   Float    @default(0)
+  precoVenda    Float    @default(0)
+  estoque       Float    @default(0)
+  unidade       String
+  fornecedorId  Int?
+  criadoEm      DateTime @default(now())
+
+  fornecedor    Fornecedor? @relation(fields: [fornecedorId], references: [id])
+  itensVenda    ItemVenda[]
+  itensCompra   ItemCompra[]
+}
+
+model Fornecedor {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  criadoEm  DateTime @default(now())
+
+  produtos  Produto[]
+  compras   Compra[]
+}
+
+model Venda {
+  id          Int      @id @default(autoincrement())
+  clienteId   Int?
+  total       Float
+  formaPgto   String
+  criadoEm    DateTime @default(now())
+
+  cliente     Cliente?   @relation(fields: [clienteId], references: [id])
+  itens       ItemVenda[]
+}
+
+model ItemVenda {
+  id          Int      @id @default(autoincrement())
+  vendaId     Int
+  produtoId   Int
+  quantidade  Float
+  preco       Float
+
+  venda       Venda    @relation(fields: [vendaId], references: [id])
+  produto     Produto  @relation(fields: [produtoId], references: [id])
+}
+
+model Compra {
+  id            Int      @id @default(autoincrement())
+  fornecedorId  Int?
+  numeroPedido  String?
+  valorTotal    Float    @default(0)
+  criadoEm      DateTime @default(now())
+
+  fornecedor    Fornecedor? @relation(fields: [fornecedorId], references: [id])
+  itens         ItemCompra[]
+}
+
+model ItemCompra {
+  id          Int      @id @default(autoincrement())
+  compraId    Int
+  produtoId   Int
+  quantidade  Float
+  precoKg     Float
+  total       Float
+
+  compra      Compra   @relation(fields: [compraId], references: [id])
+  produto     Produto  @relation(fields: [produtoId], references: [id])
+}
